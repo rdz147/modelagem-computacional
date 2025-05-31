@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Newton-Raphson</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; margin: 0; padding: 0; background-color: #f0f2f5; color: #1c1e21; display: flex; flex-direction: column; /* Alterado para column */ justify-content: flex-start; /* Alinha ao topo */ align-items: center; min-height: 100vh; padding-top: 20px; /* Adiciona espaço no topo */ }
+        .container { background-color: #fff; padding: 25px 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 8px 16px rgba(0,0,0,0.1); width: 100%; max-width: 500px; box-sizing: border-box; margin-top:0px; /* Remove margem superior se nav está fora */ }
+        nav { width: 100%; max-width: 500px; /* Mesma largura do container */ background-color: #fff; padding: 15px 0; margin-bottom: 20px; /* Espaço entre nav e container */ text-align: center; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        nav a { margin: 0 15px; text-decoration: none; color: #007bff; font-weight: bold; }
+        nav a:hover { text-decoration: underline; }
+        h1 { color: #1877f2; text-align: center; margin-bottom: 20px; font-size: 24px; margin-top: 0; } 
+        form div { margin-bottom: 18px; }
+        label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 14px; color: #606770; }
+        input[type="text"], input[type="number"] { width: 100%; padding: 10px 12px; border: 1px solid #dddfe2; border-radius: 6px; box-sizing: border-box; font-size: 15px; line-height: 1.34; }
+        input[type="text"]:focus, input[type="number"]:focus { border-color: #1877f2; box-shadow: 0 0 0 2px #e7f3ff; outline: none; }
+        input[type="submit"] { background-color: #1877f2; color: white; width: 100%; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 17px; font-weight: bold; transition: background-color 0.2s; }
+        input[type="submit"]:hover { background-color: #166fe5; }
+        .result { margin-top: 25px; padding: 15px; border: 1px solid #dddfe2; border-radius: 6px; background-color: #f7f8fa; font-size: 14px; }
+        .result h3 { margin-top: 0; margin-bottom: 12px; font-size: 16px; color: #1c1e21; }
+        .result p { margin: 8px 0; line-height: 1.4; }
+        .result strong { color: #333; }
+        .error { color: #fa383e; background-color: #ffebef; border-left: 3px solid #fa383e; padding-left: 10px; }
+        .success { color: #42b72a; background-color: #ffebef; border-left: 3px solid #42b72a; padding-left: 10px; }
+        small { display: block; color: #606770; margin-top: 6px; font-size: 12px; }
+        .info-box { background-color: #e7f3ff; border: 1px solid #1877f2; padding: 10px; border-radius: 6px; margin-bottom:20px; font-size: 13px;}
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="{% url 'home_calculo' %}">Início</a>
+        <a href="{% url 'newton_calculator' %}">Newton-Raphson</a>
+        <a href="{% url 'bissecao_calculator' %}">Bisseção</a>
+    </nav>
+    <div class="container">
+        <h1>Calculadora Newton-Raphson</h1>
+        <div class="info-box">
+            <p><strong>Instruções:</strong> Insira a função f(x) usando 'x' como variável. <br>
+            Funções suportadas: sin, cos, tan, exp, log (ln), sqrt. Use ** para potência (ex: x**2) e * para multiplicação (ex: 3*x).</p>
+        </div>
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+            <div>
+                <label for="funcao_str">Função f(x):</label>
+                <input type="text" id="funcao_str" name="funcao_str" value="{{ form_data.funcao_str|default:'x**2 - 4' }}" required>
+            </div>
+            <div>
+                <label for="x0_str">Estimativa Inicial (x₀):</label>
+                <input type="text" id="x0_str" name="x0_str" value="{{ form_data.x0_str|default:'1.0' }}" required>
+            </div>
+            <div>
+                <label for="tolerancia_str">Tolerância (ex: 0.00001 ou 1e-5):</label>
+                <input type="text" id="tolerancia_str" name="tolerancia_str" value="{{ form_data.tolerancia_str|default:'1e-7' }}" required>
+            </div>
+            <div>
+                <label for="max_iter_str">Máximo de Iterações:</label>
+                <input type="number" id="max_iter_str" name="max_iter_str" value="{{ form_data.max_iter_str|default:'100' }}" min="1" step="1" required>
+            </div>
+            <input type="submit" value="Calcular Raiz">
+        </form>
+
+        {% if erro_input %}
+            <div class="result error">
+                <h3>Erro na Entrada de Dados:</h3>
+                <p>{{ erro_input }}</p>
+            </div>
+        {% endif %}
+
+        {% if erro_sympy %}
+            <div class="result error">
+                <h3>Erro na Expressão da Função:</h3>
+                <p>{{ erro_sympy }}</p>
+            </div>
+        {% endif %}
+
+        {% if resultado %}
+            <div class="result {% if resultado.raiz is not None and not erro_input and not erro_sympy %}success{% elif not erro_input and not erro_sympy %}error{% endif %}">
+                <h3>Resultado do Cálculo:</h3>
+                <p><strong>Função f(x):</strong> <code>{{ form_data.funcao_str }}</code></p>
+                {% if derivada_calculada_str %}
+                    <p><strong>Derivada f'(x) calculada:</strong> <code>{{ derivada_calculada_str }}</code></p>
+                {% endif %}
+                <p><strong>Estimativa Inicial (x₀):</strong> {{ form_data.x0_str }}</p>
+                <p><strong>Tolerância utilizada:</strong> {{ form_data.tolerancia_str }}</p>
+                <p><strong>Máximo de iterações configurado:</strong> {{ form_data.max_iter_str }}</p>
+                <hr style="border: 0; border-top: 1px solid #dddfe2; margin: 10px 0;">
+                {% if resultado.raiz is not None %}
+                    <p><strong>Raiz encontrada:</strong> <code style="font-size: 1.1em; font-weight: bold;">{{ resultado.raiz|stringformat:".10f" }}</code></p>
+                {% else %}
+                    <p><strong>Não foi possível encontrar a raiz com os parâmetros fornecidos.</strong></p>
+                {% endif %}
+                 <p><strong>Iterações realizadas:</strong> {{ resultado.iteracoes }}</p>
+                <p><strong>Mensagem do sistema:</strong> {{ resultado.mensagem }}</p>
+                {% if resultado.raiz is not None and f_na_raiz is not None %}
+                     <p><strong>Valor de f(raiz encontrada):</strong> <code>{{ f_na_raiz|stringformat:".3e" }}</code></p>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

@@ -1,46 +1,124 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadoras de Métodos Numéricos</title>
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; margin: 0; padding: 0; background-color: #f0f2f5; color: #1c1e21; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; text-align: center; }
-        .container { background-color: #fff; padding: 30px 40px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.1); width: 100%; max-width: 600px; box-sizing: border-box; }
-        nav { width: 100%; max-width: 600px; background-color: #fff; padding: 10px 0; margin-bottom: 0px; text-align: center; border-radius: 8px 8px 0 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Adicionado para consistência visual se o container tiver padding superior */ }
-        nav a { margin: 0 10px; text-decoration: none; color: #007bff; font-weight: bold; font-size: 1em; }
-        nav a:hover { text-decoration: underline; }
-        h1 { color: #333; margin-top: 20px; margin-bottom: 30px; font-size: 28px; }
-        .options-list { list-style: none; padding: 0; }
-        .options-list li { margin-bottom: 20px; }
-        .options-list a {
-            display: block;
-            padding: 15px 20px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-size: 18px;
-            font-weight: bold;
-            transition: background-color 0.2s, transform 0.1s;
-            border: 1px solid transparent;
-        }
-        .options-list a.newton { background-color: #007bff; color: white; border-color: #007bff; }
-        .options-list a.newton:hover { background-color: #0069d9; transform: translateY(-2px); }
-        .options-list a.bissecao { background-color: #28a745; color: white; border-color: #28a745; }
-        .options-list a.bissecao:hover { background-color: #218838; transform: translateY(-2px); }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Calculadoras de Métodos Numéricos</title>
+  <style>
+    :root {
+      --cor-primaria: #6ec6ca;
+      --cor-secundaria: #b388eb;
+      --cor-destaque: #f88379;
+      --cor-fundo: #e0f7fa;
+      --cor-texto: #263238;
+    }
+
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to bottom, #d0f0f7, #e6faff);
+      color: var(--cor-texto);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding-top: 20px;
+      position: relative;
+    }
+
+    nav {
+      width: 100%;
+      max-width: 500px;
+      background-color: var(--cor-primaria);
+      padding: 15px 0;
+      margin-bottom: 20px;
+      text-align: center;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    nav a {
+      margin: 0 15px;
+      text-decoration: none;
+      color: white;
+      font-weight: bold;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    .container {
+      background-color: white;
+      padding: 25px 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 500px;
+      box-sizing: border-box;
+      text-align: center;
+      margin-top: 15%;
+      position: relative;
+      z-index: 2;
+    }
+
+    h1 {
+      color: var(--cor-secundaria);
+      margin-bottom: 30px;
+    }
+
+    .metodo-btn {
+      display: block;
+      background-color: var(--cor-primaria);
+      color: white;
+      font-weight: 700;
+      font-size: 18px;
+      padding: 15px 0;
+      margin: 12px auto;
+      width: 100%;
+      max-width: 350px;
+      border-radius: 8px;
+      text-decoration: none;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+      transition: background-color 0.2s ease, transform 0.1s ease;
+    }
+
+    .metodo-btn:hover {
+      background-color: #57a2a6;
+      transform: translateY(-2px);
+    }
+
+    .img-esquerda, .img-direita {
+      position: fixed;
+      top: 10%;
+      width: 150px;
+      z-index: 1;
+    }
+
+    .img-esquerda {
+      left: 10%;
+      margin-top: 10%;
+      width: 300px;
+    }
+
+    .img-direita {
+      right: 10%;
+      margin-top: 10%;
+      width: 250px;
+    }
+  </style>
 </head>
 <body>
+  <img src="{% static 'ariel.png' %}" alt="Ariel" class="img-esquerda">
+  <img src="{% static 'carangueijo.png' %}" alt="Sebastião" class="img-direita">
 
-    <div class="container">
-        <h1>Calculadoras de Métodos Numéricos</h1>
-        <ul class="options-list">
-            <li>
-                <a href="{% url 'newton_calculator' %}" class="newton">Acessar Método de Newton-Raphson</a>
-            </li>
-            <li>
-                <a href="{% url 'bissecao_calculator' %}" class="bissecao">Acessar Método da Bisseção</a>
-            </li>
-        </ul>
-    </div>
+  <div class="container">
+    <h1>Calculadoras de Métodos Numéricos</h1>
+
+    <a href="{% url 'newton_calculator' %}" class="metodo-btn">Método de Newton-Raphson</a>
+    <a href="{% url 'bissecao_calculator' %}" class="metodo-btn">Método da Bisseção</a>
+  </div>
 </body>
 </html>

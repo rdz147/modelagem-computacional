@@ -1,21 +1,21 @@
 # calculo/views.py
 from django.shortcuts import render
 import sympy
-from sympy.core.expr import Expr # Importar Expr para verificação de tipo
+from sympy.core.expr import Expr
 from .bissecao_logic import metodo_bissecao
 
 def home_calculo_view(request):
     """
     View para a página inicial do app 'calculo', onde o usuário escolhe o método.
     """
-    return render(request, 'calculo/home_calculo.html') # CORREÇÃO AQUI
+    return render(request, 'calculo/home_calculo.html') #CORREÇÃO AQUI
 
-# Importe a função do seu arquivo newton_method.py
+#importe a função do seu arquivo newton_method.py
 from .newton_method import newton_raphson
 
 def newton_calculator_view(request):
     context = {
-        'form_data': { # Valores padrão para o formulário na primeira carga
+        'form_data': { #valores padrão para o formulário na primeira carga
             'funcao_str': 'x**2 - 4',
             'x0_str': '1.0',
             'tolerancia_str': '1e-7',
@@ -40,7 +40,7 @@ def newton_calculator_view(request):
         print("-" * 40)
         # --- FIM DEBUGGING ---
 
-        context['form_data'] = { # Atualiza com os dados enviados
+        context['form_data'] = { #atualiza com os dados enviados
             'funcao_str': funcao_str,
             'x0_str': x0_str,
             'tolerancia_str': tolerancia_str,
@@ -48,7 +48,7 @@ def newton_calculator_view(request):
         }
 
         try:
-            # Validação e conversão dos inputs numéricos
+            #validação e conversão dos inputs numéricos
             if not x0_str or not tolerancia_str or not max_iter_str:
                 raise ValueError("Todos os campos numéricos (x0, tolerância, máx. iterações) são obrigatórios.")
             
@@ -66,7 +66,7 @@ def newton_calculator_view(request):
             return render(request, 'calculo/newton_calculator.html', context)
 
         try:
-            print("DEBUG DJANGO VIEW: Entrando no bloco try do SymPy...") # DEBUG
+            print("DEBUG DJANGO VIEW: Entrando no bloco try do SymPy...") #DEBUG
             x_sym = sympy.symbols('x')
             
             allowed_functions = {
@@ -84,33 +84,33 @@ def newton_calculator_view(request):
 
             if not funcao_str:
                 raise ValueError("A expressão da função não pode estar vazia.")
-            print(f"DEBUG DJANGO VIEW: Antes do sympify, funcao_str: '{funcao_str}'") # DEBUG
+            print(f"DEBUG DJANGO VIEW: Antes do sympify, funcao_str: '{funcao_str}'") #DEBUG
 
             func_sympy = sympy.sympify(funcao_str, locals=local_scope)
-            print(f"DEBUG DJANGO VIEW: Após sympify, func_sympy: {func_sympy} (Tipo: {type(func_sympy)})") # DEBUG
+            print(f"DEBUG DJANGO VIEW: Após sympify, func_sympy: {func_sympy} (Tipo: {type(func_sympy)})") #DEBUG
             
             if not isinstance(func_sympy, Expr):
                 raise ValueError(f"A função '{funcao_str}' não foi interpretada como uma expressão matemática escalar válida. Verifique a sintaxe.")
 
             if func_sympy.is_number:
-                if sympy.Eq(func_sympy, 0): # Usando sympy.Eq para comparação robusta
+                if sympy.Eq(func_sympy, 0):
                     raise ValueError("A função fornecida é '0'. Não é possível aplicar Newton-Raphson.")
                 else:
                     raise ValueError(f"A função fornecida é uma constante '{func_sympy}'. Não há raízes (a menos que a constante seja 0).")
 
-            # A verificação if x_sym not in func_sympy.free_symbols: foi removida por enquanto
-            # pois a lógica de derivada zero e is_number deve cobrir os casos problemáticos.
+            #a verificação if x_sym not in func_sympy.free_symbols: foi removida por enquanto
+            #pois a lógica de derivada zero e is_number deve cobrir os casos problemáticos.
 
             derivada_sympy = sympy.diff(func_sympy, x_sym)
-            print(f"DEBUG DJANGO VIEW: Após diff, derivada_sympy: {derivada_sympy} (Tipo: {type(derivada_sympy)})") # DEBUG
+            print(f"DEBUG DJANGO VIEW: Após diff, derivada_sympy: {derivada_sympy} (Tipo: {type(derivada_sympy)})") #DEBUG
             derivada_calculada_str = str(derivada_sympy)
 
             func_callable = sympy.lambdify(x_sym, func_sympy, modules=['math'])
-            print(f"DEBUG DJANGO VIEW: func_callable criada: {func_callable}") # DEBUG
+            print(f"DEBUG DJANGO VIEW: func_callable criada: {func_callable}") #DEBUG
             derivada_callable = sympy.lambdify(x_sym, derivada_sympy, modules=['math'])
-            print(f"DEBUG DJANGO VIEW: derivada_callable criada: {derivada_callable}") # DEBUG
+            print(f"DEBUG DJANGO VIEW: derivada_callable criada: {derivada_callable}") #DEBUG
 
-            print(f"DEBUG DJANGO VIEW: Antes de chamar newton_raphson com x0={x0}, tol={tolerancia}") # DEBUG
+            print(f"DEBUG DJANGO VIEW: Antes de chamar newton_raphson com x0={x0}, tol={tolerancia}") #DEBUG
             raiz, iteracoes, mensagem = newton_raphson(
                 func_callable,
                 derivada_callable,
@@ -118,7 +118,7 @@ def newton_calculator_view(request):
                 tolerancia,
                 max_iter
             )
-            print(f"DEBUG DJANGO VIEW: Após newton_raphson: raiz={raiz}, iter={iteracoes}") # DEBUG
+            print(f"DEBUG DJANGO VIEW: Após newton_raphson: raiz={raiz}, iter={iteracoes}") #DEBUG
             
             context['resultado'] = {
                 'raiz': raiz, 'iteracoes': iteracoes, 'mensagem': mensagem,
@@ -132,20 +132,20 @@ def newton_calculator_view(request):
                     context['f_na_raiz'] = "Não calculável"
 
         except (sympy.SympifyError, TypeError, NameError) as e:
-            print(f"DEBUG DJANGO VIEW: ERRO CAPTURADO (SympifyError, TypeError, NameError): {type(e).__name__} - {e}") # DEBUG
+            print(f"DEBUG DJANGO VIEW: ERRO CAPTURADO (SympifyError, TypeError, NameError): {type(e).__name__} - {e}") #DEBUG
             context['erro_sympy'] = f"Erro ao processar a função: '{e}'. Verifique a sintaxe. Use 'x' como variável e funções como sin(x), exp(x), log(x), etc."
         except ValueError as e:
-            print(f"DEBUG DJANGO VIEW: ERRO CAPTURADO (ValueError): {e}") # DEBUG
+            print(f"DEBUG DJANGO VIEW: ERRO CAPTURADO (ValueError): {e}") #DEBUG
             context['erro_sympy'] = str(e)
         except Exception as e:
-            print(f"DEBUG DJANGO VIEW: ERRO CAPTURADO (Outra Exceção): {type(e).__name__} - {e}") # DEBUG
+            print(f"DEBUG DJANGO VIEW: ERRO CAPTURADO (Outra Exceção): {type(e).__name__} - {e}") #DEBUG
             context['erro_sympy'] = f"Ocorreu um erro inesperado no processamento da função: {e}"
 
     return render(request, 'calculo/newton_calculator.html', context)
 
 def bissecao_calculator_view(request):
     context = {
-        'form_data': { # Valores padrão para o formulário na primeira carga
+        'form_data': { #valores padrão para o formulário na primeira carga
             'funcao_str': 'x**3 - x - 2',
             'a_str': '1.0',
             'b_str': '2.0',
@@ -153,7 +153,7 @@ def bissecao_calculator_view(request):
             'max_iter_str': '100',
         }
     }
-    f_na_raiz = None # Para armazenar o valor de f(raiz_encontrada)
+    f_na_raiz = None #para armazenar o valor de f(raiz_encontrada)
 
     if request.method == 'POST':
         funcao_str = request.POST.get('funcao_str', '').strip().lower()
@@ -192,7 +192,7 @@ def bissecao_calculator_view(request):
 
         try:
             x_sym = sympy.symbols('x')
-            allowed_functions = { # Copiado da view de Newton, ajuste se necessário
+            allowed_functions = { #copiado da view de newton, ajuste se necessário
                 "sin": sympy.sin, "cos": sympy.cos, "tan": sympy.tan,
                 "exp": sympy.exp, "ln": sympy.log, "log": sympy.log,
                 "log10": lambda arg: sympy.log(arg, 10),
@@ -209,7 +209,7 @@ def bissecao_calculator_view(request):
 
             func_sympy = sympy.sympify(funcao_str, locals=local_scope)
             
-            if not isinstance(func_sympy, Expr): # sympy.core.expr.Expr
+            if not isinstance(func_sympy, Expr):
                 raise ValueError(f"A função '{funcao_str}' não foi interpretada como uma expressão matemática escalar válida.")
 
             if func_sympy.is_number:
@@ -217,7 +217,7 @@ def bissecao_calculator_view(request):
 
             func_callable = sympy.lambdify(x_sym, func_sympy, modules=['math'])
 
-            # Chama o método da Bisseção
+            #chama o método da bisseção
             raiz, iteracoes, mensagem = metodo_bissecao(
                 func_callable,
                 val_a,
